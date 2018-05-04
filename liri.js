@@ -1,23 +1,10 @@
-/**
- * LIRI takes an argument then performs the corresponding action
- * 
- * There will be three commands for each service we will make a request to
- * 
- * * `my-tweets`
-
-* `spotify-this-song`
-
-* `movie-this`
-
-* `do-what-it-says`
-
- */
 //All the darn requiring
 var keys = require('./keys.js');
 var request = require('request');
 var Twitter = require('twitter');
-
 var fs = require('fs');
+var Spotify = require('node-spotify-api');
+var spotify = new Spotify(keys.spotify);
 
 var commands = {
     TWITTER: 'my-tweets',
@@ -75,6 +62,7 @@ function omdbData(movieSearch) {
     request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             var body = JSON.parse(body);
+            console.log(body);
 
             console.log("Title: " + body.Title);
             console.log("Release Year: " + body.Year);
@@ -83,8 +71,7 @@ function omdbData(movieSearch) {
             console.log("Language: " + body.Language);
             console.log("Plot: " + body.Plot);
             console.log("Actors: " + body.Actors);
-            console.log("Rotten Tomatoes Rating: " + body.tomatoRating);
-
+            console.log("Rotten Tomatoes Rating: " + body.Ratings[1].Value);
 
             //adds text to log.txt
             fs.appendFile('log.txt', "Title: " + body.Title);
@@ -94,8 +81,7 @@ function omdbData(movieSearch) {
             fs.appendFile('log.txt', "Language: " + body.Language);
             fs.appendFile('log.txt', "Plot: " + body.Plot);
             fs.appendFile('log.txt', "Actors: " + body.Actors);
-            fs.appendFile('log.txt', "Rotten Tomatoes Rating: " + body.tomatoRating);
-
+            // fs.appendFile('log.txt', "Rotten Tomatoes Rating: " + body.Ratings[1].Value);
 
         } else {
             console.log('Error occurred.')
@@ -111,12 +97,10 @@ function omdbData(movieSearch) {
             fs.appendFile('log.txt', "It's on Netflix!");
         }
     });
-
 }
 
 //Function Twitter Code
 function showTweets() {
-
     var twitter = new Twitter(keys.twitter);
     twitter.get("statuses/user_timeline", function (error, tweets, response) {
         if (error) {
@@ -131,33 +115,34 @@ function showTweets() {
 }
 
 //Function Spotify Code
-function spotifySong(song){
-    spotify.search({ type: 'track', query: song}, function(error, data){
-      if(!error){
-        for(var i = 0; i < data.tracks.items.length; i++){
-          var songData = data.tracks.items[i];
-          //artist
-          console.log("Artist: " + songData.artists[0].name);
-          //song name
-          console.log("Song: " + songData.name);
-          //spotify preview link
-          console.log("Preview URL: " + songData.preview_url);
-          //album name
-          console.log("Album: " + songData.album.name);
-          console.log("-----------------------");
-          
-          //adds text to log.txt
-          fs.appendFile('log.txt', songData.artists[0].name);
-          fs.appendFile('log.txt', songData.name);
-          fs.appendFile('log.txt', songData.preview_url);
-          fs.appendFile('log.txt', songData.album.name);
-          fs.appendFile('log.txt', "-----------------------");
+function spotifySong(song) {
+    spotify.search({ type: 'track', query: song }, function (error, data) {
+        if (!error) {
+            for (var i = 0; i < data.tracks.items.length; i++) {
+                var songData = data.tracks.items[i];
+                //artist
+                console.log("Artist: " + songData.artists[0].name);
+                //song name
+                console.log("Song: " + songData.name);
+                //spotify preview link
+                console.log("Preview URL: " + songData.preview_url);
+                //album name
+                console.log("Album: " + songData.album.name);
+                console.log("-----------------------");
+
+                //adds text to log.txt
+                fs.appendFile('log.txt', songData.artists[0].name);
+                fs.appendFile('log.txt', songData.name);
+                fs.appendFile('log.txt', songData.preview_url);
+                fs.appendFile('log.txt', songData.album.name);
+                fs.appendFile('log.txt', "-----------------------");
+            }
+        } else {
+            console.log(error);
+            console.log('Error occurred.');
         }
-      } else{
-        console.log('Error occurred.');
-      }
     });
-  }
+}
 //Function doThing Code
 function doThing() {
     fs.readFile('random.txt', "utf8", function (error, data) {
